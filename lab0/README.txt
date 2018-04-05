@@ -1,1 +1,0 @@
-Ivanna Rivera. I have read the Syllabus and Personal Responsibility documents.
