@@ -12,7 +12,7 @@ class FeedBabe{
 	char divisible;
 	n = 500;
 
-	for (int i = 1; i < n; i++){
+	for (int i = 1; i <= n; i++){
 		System.out.println("FEED"+i);
   	}
   }
