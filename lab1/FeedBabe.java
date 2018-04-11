@@ -19,7 +19,7 @@ class FeedBabe{
 		{
 		System.out.println("BABE"); 
 		}
-		if(i %3 == 0 && i %4 == 0)
+		else if(i %3 == 0 && i %4 == 0)
 		{
 		System.out.println("FEEDBABE");
 		}
