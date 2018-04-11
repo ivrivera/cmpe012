@@ -8,13 +8,18 @@
 
 class FeedBabe{
   public static void main(String[] args){
-	int n = 0;
+	int n = 500;
 	char divisible;
-	n = 500;
 
 	for (int i = 1; i <= n; i++){
-		System.out.println("FEED"+i);
-  	}
+		if(n %3 == 0){
+		System.out.println("FEED");
+  		} else if(n %4 == 0){
+		System.out.println("BABE");
+		} else if(n %3 == 0 && n %4 == 0){
+		System.out.println("FEEDBABE");
+		}
+	}
   }
 }
 	
