@@ -23,6 +23,10 @@ class FeedBabe{
 		{
 		System.out.println("FEEDBABE");
 		}
+		else
+		{
+		System.out.println(i);
+		}
 	}
   }
 }
