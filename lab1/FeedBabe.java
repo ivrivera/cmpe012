@@ -11,17 +11,17 @@ class FeedBabe{
 	int n = 500;
 
 	for (int i = 1; i <= n; i++){
-		if(i %3 == 0)
-		{
-		System.out.println("FEED");
+		if(i %3 == 0 && i %4 == 0)
+                {
+                System.out.println("FEEDBABE");
   		}
 		else if(i %4 == 0)
 		{
 		System.out.println("BABE"); 
 		}
-		else if(i %3 == 0 && i %4 == 0)
+		else if(i %3 == 0)
 		{
-		System.out.println("FEEDBABE");
+		System.out.println("FEED");
 		}
 		else
 		{
