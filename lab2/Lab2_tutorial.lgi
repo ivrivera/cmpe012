@@ -1,0 +1,36 @@
+41 2 0
+38 1
+22 3 23 232 3 0 \NUL
+Ivanna Rivera (ivrivera@ucsc.edu)
+22 3 63 117 43 0 \NUL
+Due on: 04/20/18
+22 3 43 280 23 0 \NUL
+Lab 2: Intro to Logic with Multimedia Logic
+22 3 83 149 63 0 \NUL
+Section 01D, Rebecca
+22 773 32 785 12 0 \NUL
+1
+22 16 125 58 105 0 \NUL
+Part A
+8 245 283 294 234 1 0
+7 397 283 446 234 2 1
+22 249 305 295 285 0 \NUL
+Switch
+22 406 301 437 281 0 \NUL
+LED
+1 398 258 291 258
+39 16777215
+47 0
+40 1 6 6
+50 800 600
+51 0 100
+30
+System
+16
+700
+0
+0
+1
+2
+2
+34
