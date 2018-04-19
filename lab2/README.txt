@@ -18,8 +18,9 @@ recommend doing it this way because without the 7-segment display the circuit wo
 and inconvenient.
 
 I think the random number generator works in a sequential form because they generate a number sequence
-that appears random, but in the computer is made of logic gates.
+that appears random, even though the computer is made of deterministic logic gates.
 
 The randomness in a computer does follow some logic, but they carry properties such as non-repeating
-and low predictablity outputs by using distinct algoritms that make the output appear random. It
-must be because of the different sequential circuits that make it appear random.
+and low predictablity qualities that are basically distinct algoritms which make the output appear
+random. It must be because of the different sequential circuits and they generate a non-repeating,
+low-predictability "random" outputs.
