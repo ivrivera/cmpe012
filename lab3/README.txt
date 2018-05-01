@@ -12,10 +12,10 @@ LEARNING
 I gained more familiarity with how to use logic gates alsolearned that each register has to
 have a reset button and a store button. It was kind of surprising to me when I realized
 that the register needed the 1-bit 4-way MUX in order to function properly otherwise
-if it would just store the keypad input and not perform any of the three logic operations
-(INVERT, AND, OR). It was also surprising that MML has a keypad input that can be divided into bits
-so it is easier for programmers to make a structure that implements individual gates into a larger
-structure like a logic ALU. It is super cool how everything gets puzzled together.  
+it would just store the keypad input and not perform any of the 3 logic operations.
+It was also interesting to me how the MML program has a keypad input which can be sub-divided into
+binary bits, that way programmers can make structures like this lab. It is super cool how everything
+ gets puzzled together to form this Arithmetic Logic Unit.
 
 ----------------
 ISSUES
@@ -23,20 +23,20 @@ I had issues with figuring out how to revise the Flip Flop to jibe with the data
 thought I could build the registers before the MUX but I learned that the output of
 the MUX has to be the input of the register otherwise the register would not know which
 operation the user wants. Some challenges I faced were figuring out if my MUX
-was working properly so I implemented some debugging tools to figure out the core to my errors.
+was working properly so I implemented some debugging tools to figure out the core of my errors.
 I messed around with the 7-segment display of the Register Value that way I could see if my MUXes
-were working correctly. While testing my first bit register and MUX, I connected 3 grounds to the 
-7 segmenet display so that I could see if my Register and MUX were working properly together.
+were working correctly. By connecting a receiver transistor to the MUX sender I could check each single MUX.
+I connected 3 grounds to the 7 segmenet display so that I could see if my initial Register and MUX
+ were working properly together for a single bit. 
 ----------------
 DEBUGGING
 
 I added an LED to the output of my MUX to check if my logic gates and operations were
 perfomring correctly. I connected the MUX receiver to an LED and if the light turned on,
 that meant that the result of the operation was a 1. FOr instance, if my input was 2 then stored it
-and ORed it with 1, my MUX1 would return a lit LED. I first created 1 bit and tested that
-then I started creating one additional bit after test running each of them. This way I single-handenly
-and painlessly fixed my mistakes. 
-
+and ORed it with 1, my MUX1 would return a lit LED. I first created a 1 bit register and a 1 bit MUX
+and tested for that one then I started creating one additional bit after the other. This way I single-handedly
+and effortlessly fixed many minor errors rather than waiting till the very end to fix all of the mistakes.
 ----------------
 QUESTIONS
 
