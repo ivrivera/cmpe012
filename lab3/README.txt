@@ -47,8 +47,9 @@ the operation X OR Y would look something like this:
 					+1010
 					---------
 					 1011
+A bit-wise AND means that if you are ANDing two 4-bit inputs you will get a 4-bit output. 
 The difference between bit wise and reduction logic is that the following logic operation uses logic
-for each single bit. For instance, the operation AND(x) would look something like:
+for each single bit. For instance, the reduation logic operation AND(x) would look something like:
 					&(X) 0*0*1*1 = 0
 In other words, the logical bit-wise operation is performed on the result of a previous operation and
  on the next bit of the operand. Reduction logic operators only produce a single bit output (True or 
@@ -56,11 +57,15 @@ False).
 
 What operations did we implement?
 We implemented the operators AND (0b01), OR (0b10) and the invert (0b11).
-These all functioned after you pressed the store operation. We also created 4 1-bit, 4-way MUXes out of
- logic gates which takes into account the bit and performf operation. The register (Flip Flops) stores
-a multibit value which latches the n-bit value and is either Anded, Ored or inverted, or simply
-stored into the register. 
+These operations were performed after you pressed the store operation. We also created 4 1-bit, 4-way MUXes
+ out of logic gates which read the MSBsel and the LSBsel and send it to the register. The register (Flip Flops)
+store a multibit value which latches the n-bit value and is either ANDed and stored, ORed and stored, or Inverted
+and stored, or simply stored directly into the register. 
 
 Why might we want to use the other type of logic operations?
-<<insert your answer>>
+We might want to use the other type of logic operations because NAND and NOR gates use less transistors. In
+other words they would make a cleaner circuit and, today, almost all modern processors use NAND gates to 
+build their processors. This lab specifically required AND and OR gates because we had to implement out 
+transistors to operate the Sum of Products but we could have also used NAND gates to get the same outcome,
+ although it would have required more skillful thinking. 
 
