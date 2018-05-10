@@ -1,6 +1,6 @@
 #Ivanna Rivera, ivrivera@ucsc.edu
 #Lab 4
-#Due: May 11, 2018
+#Due: May 12, 2018
 #Lab 01D, Rebecca
 .data
 greeting: .asciiz "Please input a number: "	#The string to print.
@@ -34,12 +34,13 @@ LOOP:
 Not_3:	bne $t5, $zero, Not_4	#conditional statement: divisible by 4
 	la $a0, babe		#print babe
 	li $v0, 4
-	syscall
-Not_4:  		#print feedbabe if both are true
-	li $v0, 1		#print integer syscall
+	syscall			#print feedbabe if both are true.
+Not_4:  beqz $t3, END		#skips to a newline if $t3 = 0.
+	beqz $t5, END		#skips to a newline if $t5 = 0.
 	move $a0, $t0		#move $t0 into $a0.
+	li $v0, 1		#print integer syscall.
 	syscall
-	la $a0, newline		#print newline
+END:	la $a0, newline		#print newline.
 	li $v0, 4
 	syscall
 	blt $t0, $t1, LOOP	#If i<k go to LOOP
