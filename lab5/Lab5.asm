@@ -11,20 +11,30 @@
 	li	$v0, 4		#print string
 	syscall			#syscall 4
 	
-	la	$a0, newline
-	li	$v0, 4
+	la	$a0, newline	#print new line
+	li	$v0, 4		#syscall 4
 	syscall
 	
 	la	$a0, ($t0)	#output user string
 	syscall
 	
-	la	$a0, newline
-	li	$v0, 4
+	la	$a0, newline		#print new line
+	li	$v0, 4			#syscall 4
 	syscall
 	
-	li 	$s0, 0
+	li 	$s0, 0		#load zeroes into s0
 	
-	addi 	$t0, $t0, 2	#byte addressable: skip over the first 2 characters (0x7fffeff2)	
+	addi 	$t0, $t0, 2	#byte addressable: skip over the first 2 characters (set to 0x7fffeff2)
+	
+	lbu	$t1, ($t0)
+	beq	$t1, 45, negativeSign		#45 is the aascii character for the negative sign
+	
+	b loop
+	
+negativeSign:	
+	li	$s1, 1		#set a flag so you can print a negative sign before printing a negative number
+	addi	$t0, $t0, 1	#increment string counter past the negative
+		
 loop:
 	lb	$t1, ($t0)		#store the address space from offset 2($t0) into $t1
 	beqz	$t1, endloop		#Checks if whatever string you loaded is null, because 
@@ -45,29 +55,33 @@ loop:
 isLetter:	
 	sub	$t2, $t1, 55
 isDigit:	
-		li	$v0, 4
-		la	$a0, char
-		syscall
-	
-		li	$v0, 1
-		move	$a0, $t2
-		syscall	
-		
-		la	$a0, newline
-		li	$v0, 4
-		syscall
-		
-		sll	$s0,$s0, 4		#shift logical left 28 bits
+		#Start with shifting s0 4 logical bits to the left
+		#OR the memory inside of t2 with s0
+		#Check LSB and shift it 4 logical bits to the left until you break
+		sll	$s0,$s0, 4		#shift logical left 4 bits
 		or	$s0, $s0, $t2		#bitwise OR the 32-bit numbers
 		
 		addi	$t0, $t0, 1
 		
+		#Check the magnitude
+		#Invert the bits and add 1
+		xori	$t1, $s0, 1		#invert the bits
+		addi	$t2, $t1, 0001		#add 1
+		
 		b loop
+	
 		
-		
-		
-		
-endloop: 					
+endloop: 		li	$v0, 4
+			la 	$a0, output
+			syscall
+			
+			li	$v0, 4
+			la	$a0, newline
+			syscall
+			
+			li	$v0, 1
+			move	$a0, $t2
+			syscall					
 			
 			li 	$v0, 10
 			syscall 
@@ -76,4 +90,6 @@ endloop:
 char: .asciiz "Char is: "
 userInput: .asciiz "Input a hex number: "
 newline: .asciiz "\n"
+#negative_sign: .asciiz "-"
+output: .asciiz "The decimal value is: "
 	
