@@ -24,20 +24,12 @@
 	
 	li 	$s0, 0		#load zeroes into s0
 	
-	addi 	$t0, $t0, 2	#byte addressable: skip over the first 2 characters (set to 0x7fffeff2)
-	
-	lbu	$t1, ($t0)
-	beq	$t1, 45, negativeSign		#45 is the aascii character for the negative sign
+	addi 	$t0, $t0, 2	#byte addressable: skip over the first 2 characters (set to 0x7fffeff2
 	
 	b loop
-	
-negativeSign:	
-	li	$s1, 1		#set a flag so you can print a negative sign before printing a negative number
-	addi	$t0, $t0, 1	#increment string counter past the negative
-		
 loop:
 	lb	$t1, ($t0)		#store the address space from offset 2($t0) into $t1
-	beqz	$t1, endloop		#Checks if whatever string you loaded is null, because 
+	beqz	$t1, exitloop		#Checks if whatever string you loaded is null, because 
 					#the ASCII value for null is 0
 	
 	#if $t0 < 58 && $t0 > 47)			#A-F in ASCII decimal is 65 to 70  (sub 55)
@@ -53,43 +45,66 @@ loop:
 	sub	$t2, $t1, 48
 	b 	isDigit
 isLetter:	
-	sub	$t2, $t1, 55
+	sub	$t2, $t1, 55		#subtract 55 if it is a letter
 isDigit:	
 		#Start with shifting s0 4 logical bits to the left
 		#OR the memory inside of t2 with s0
 		#Check LSB and shift it 4 logical bits to the left until you break
 		sll	$s0,$s0, 4		#shift logical left 4 bits
-		or	$s0, $s0, $t2		#bitwise OR the 32-bit numbers
+		or	$s0, $s0, $t2		#bitwise OR the 32-bit number		
 		
 		addi	$t0, $t0, 1
 		
-		#Check the magnitude
-		#Invert the bits and add 1
-		xori	$t1, $s0, 1		#invert the bits
-		addi	$t2, $t1, 0001		#add 1
-		
 		b loop
-	
 		
-endloop: 		li	$v0, 4
+exitloop:	li	$t2, 0x80000000	#check msb, bitwise AND 0x80000000 with s0
+		move 	$t1, $s0		#move address space of s0 into t1
+		and  	$t3, $t1, $t2		#Bitwise AND t1 and 0x80000000
+		bltz    $t3, negativeSignDetected	#if value is negative then branch to negativeSignDetected
+		b	getRemainder	#if value is positive branch to countDigits
+
+negativeSignDetected:	#Check the magnitude
+			#Invert the bits and add 1
+		#Directly store the ASCII character for the negative sign (45) in the first element of the array
+		#and add 1 to the array pointer
+		li	$t4, 45		#load ascii 45 into $t4
+		not	$t1, $t1		#invert the bits
+		add	$t1, $t1, 1		#add 1
+		la	$t9, ($t1)		#load address space t1 into t9
+		sb 	$t4, array		#store ascii char 45 in first byte of array
+getRemainder:	li	$t7, 1		#load 1 into t7
+		li	$t5, 10		#load 10 into t5
+divideloop:	divu 	$t1, $t5	#divide decimal value by 10
+		mfhi	$t6		#set remainder to t6
+		mflo	$t1		#set lo remainder to t1
+		addi	$t2, $t6, 48		#add 48 to convert to ascii and store into t2
+		
+		sb	$t2, array($t7)		#offset array by 1	
+		addi	$t7, $t7, 1		#keep adding 1 to the offset
+		bnez	$t1, divideloop	 #branch to division
+		
+		
+	
+endProgram:
+	 		li	$v0, 4
 			la 	$a0, output
 			syscall
 			
 			li	$v0, 4
 			la	$a0, newline
 			syscall
-			
-			li	$v0, 1
-			move	$a0, $t2
+		
+			li	$v0, 4
+			la	$a0, array
 			syscall					
 			
 			li 	$v0, 10
 			syscall 
-		
+
 .data
-char: .asciiz "Char is: "
 userInput: .asciiz "Input a hex number: "
 newline: .asciiz "\n"
-#negative_sign: .asciiz "-"
 output: .asciiz "The decimal value is: "
+array: .space 10 	#max 10 digits (-2^31)
+
 	
