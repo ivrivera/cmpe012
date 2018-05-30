@@ -21,13 +21,15 @@
 	la	$a0, newline		#print new line
 	li	$v0, 4			#syscall 4
 	syscall
-			li	$v0, 4			#syscall 4
-		la 	$a0, output		#print output string
-		syscall
+	
+	li	$v0, 4			#syscall 4
+	la 	$a0, output		#print output string
+	syscall
 			
-		li	$v0, 4			#syscall 4
-		la	$a0, newline		#print string newline
-		syscall
+	li	$v0, 4			#syscall 4
+	la	$a0, newline		#print string newline
+	syscall
+	
 	li 	$s0, 0		#load zeroes into s0
 	
 	la	$t8, array	#load size of digits into array
@@ -80,8 +82,8 @@ negativeSignDetected:
 		li	$t4, 45		#load ascii 45 into $t4
 		not	$t1, $t1		#invert the bits
 		add	$t1, $t1, 1		#add 1
-		li	$v0, 11
-		move	$a0, $t4
+		li	$v0, 11		#syscall 11
+		move	$a0, $t4	#print negative sign
 		syscall
 		addi	$t8, $t8, 1		#skip the first space in the array, add 1 to the array pointer
 getRemainder:	li	$t7, 1		#load 1 into t7
@@ -97,9 +99,9 @@ divideloop:	divu 	$t1, $t5	#divide decimal value by 10
 	
 		bnez	$t1, divideloop	 	#branch to division
 		
-		subi 	$t7, $t7, 1
-		li      $v0, 11		#syscall 11
+		subi 	$t7, $t7, 1		#subtract 10 by 1 so we can start at 9 (last character)
 		
+		li      $v0, 11		#syscall 11
 reverseLoop:
 		lb      $t0, array($t7)   #loading value into offset array t2
 		move      $a0, $t0	#loading byte of a0 into t0
@@ -108,8 +110,6 @@ reverseLoop:
 		bnez    $t7, reverseLoop	#branch if t2 does not equal zero
 		
 endProgram:
-
-		
 		li 	$v0, 10			#syscall 10
 		syscall 			#terminate
 						
