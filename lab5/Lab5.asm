@@ -75,31 +75,46 @@ negativeSignDetected:	#Check the magnitude
 getRemainder:	li	$t7, 1		#load 1 into t7
 		li	$t5, 10		#load 10 into t5
 divideloop:	divu 	$t1, $t5	#divide decimal value by 10
-		mfhi	$t6		#set remainder to t6
+		mfhi	$t6		#set high remainder to t6
 		mflo	$t1		#set lo remainder to t1
 		addi	$t2, $t6, 48		#add 48 to convert to ascii and store into t2
-		
+		#Store byte t2 into the next box of array
 		sb	$t2, array($t7)		#offset array by 1	
+		
 		addi	$t7, $t7, 1		#keep adding 1 to the offset
+	
 		bnez	$t1, divideloop	 #branch to division
 		
+		j	decimalVal		#jump to print the output and newline
 		
-	
-endProgram:
-	 		li	$v0, 4
-			la 	$a0, output
-			syscall
-			
-			li	$v0, 4
-			la	$a0, newline
-			syscall
+reverse:	li      $t2, 0
+stringLen:	lb      $t0, array($t2)   #loading value into start of array, count the length of the string
+		add     $t2, $t2, 1		#add 1 to the offset
+		bnez    $t0, stringLen		#loop until t0 is zero
+
+		sub     $t2, $t2, 1	#subtract character offset by 1
+
+		li      $v0, 11		#syscall 11
+reverseLoop:
+		la      $t0, array($t2)   #loading value into offset array t2
+		lb      $a0, ($t0)	#loading byte of a0 into t0
+		syscall			#call system print charcter
+		sub     $t2, $t2, 1	#subtract by 1
+		bnez    $t2, reverseLoop	#branch if t2 does not equal zero
 		
-			li	$v0, 4
-			la	$a0, array
-			syscall					
+endProgram:	li 	$v0, 10			#syscall 10, terminate
+		syscall 
+
+decimalVal:	li	$v0, 4			#syscall 4
+		la 	$a0, output		#print output string
+		syscall
 			
-			li 	$v0, 10
-			syscall 
+		li	$v0, 4			#syscall 4
+		la	$a0, newline		#print string newline
+		syscall
+		
+		b reverse		#branch to reverse statement
+						
 
 .data
 userInput: .asciiz "Input a hex number: "
