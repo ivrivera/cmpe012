@@ -21,8 +21,16 @@
 	la	$a0, newline		#print new line
 	li	$v0, 4			#syscall 4
 	syscall
-	
+			li	$v0, 4			#syscall 4
+		la 	$a0, output		#print output string
+		syscall
+			
+		li	$v0, 4			#syscall 4
+		la	$a0, newline		#print string newline
+		syscall
 	li 	$s0, 0		#load zeroes into s0
+	
+	la	$t8, array	#load size of digits into array
 	
 	addi 	$t0, $t0, 2	#byte addressable: skip over the first 2 characters (set to 0x7fffeff2
 	
@@ -63,15 +71,19 @@ exitloop:	li	$t2, 0x80000000	#check msb, bitwise AND 0x80000000 with s0
 		bltz    $t3, negativeSignDetected	#if value is negative then branch to negativeSignDetected
 		b	getRemainder	#if value is positive branch to countDigits
 
-negativeSignDetected:	#Check the magnitude
-			#Invert the bits and add 1
-		#Directly store the ASCII character for the negative sign (45) in the first element of the array
+negativeSignDetected:	
+		#Directly store the ASCII character for the negative sign (45) into the first element of the array
 		#and add 1 to the array pointer
+		
+		#Check the magnitude
+		#Invert the bits and add 1
 		li	$t4, 45		#load ascii 45 into $t4
 		not	$t1, $t1		#invert the bits
 		add	$t1, $t1, 1		#add 1
-		la	$t9, ($t1)		#load address space t1 into t9
-		sb 	$t4, array		#store ascii char 45 in first byte of array
+		li	$v0, 11
+		move	$a0, $t4
+		syscall
+		addi	$t8, $t8, 1		#skip the first space in the array, add 1 to the array pointer
 getRemainder:	li	$t7, 1		#load 1 into t7
 		li	$t5, 10		#load 10 into t5
 divideloop:	divu 	$t1, $t5	#divide decimal value by 10
@@ -83,43 +95,29 @@ divideloop:	divu 	$t1, $t5	#divide decimal value by 10
 		
 		addi	$t7, $t7, 1		#keep adding 1 to the offset
 	
-		bnez	$t1, divideloop	 #branch to division
+		bnez	$t1, divideloop	 	#branch to division
 		
-		j	decimalVal		#jump to print the output and newline
-		
-reverse:	li      $t2, 0
-stringLen:	lb      $t0, array($t2)   #loading value into start of array, count the length of the string
-		add     $t2, $t2, 1		#add 1 to the offset
-		bnez    $t0, stringLen		#loop until t0 is zero
-
-		sub     $t2, $t2, 1	#subtract character offset by 1
-
+		subi 	$t7, $t7, 1
 		li      $v0, 11		#syscall 11
+		
 reverseLoop:
-		la      $t0, array($t2)   #loading value into offset array t2
-		lb      $a0, ($t0)	#loading byte of a0 into t0
+		lb      $t0, array($t7)   #loading value into offset array t2
+		move      $a0, $t0	#loading byte of a0 into t0
 		syscall			#call system print charcter
-		sub     $t2, $t2, 1	#subtract by 1
-		bnez    $t2, reverseLoop	#branch if t2 does not equal zero
+		sub     $t7, $t7, 1	#subtract by 1
+		bnez    $t7, reverseLoop	#branch if t2 does not equal zero
 		
-endProgram:	li 	$v0, 10			#syscall 10, terminate
-		syscall 
+endProgram:
 
-decimalVal:	li	$v0, 4			#syscall 4
-		la 	$a0, output		#print output string
-		syscall
-			
-		li	$v0, 4			#syscall 4
-		la	$a0, newline		#print string newline
-		syscall
 		
-		b reverse		#branch to reverse statement
+		li 	$v0, 10			#syscall 10
+		syscall 			#terminate
 						
 
 .data
 userInput: .asciiz "Input a hex number: "
 newline: .asciiz "\n"
 output: .asciiz "The decimal value is: "
-array: .space 10 	#max 10 digits (-2^31)
+array: .space 10 #max 10 digits (-2^31)
 
 	
