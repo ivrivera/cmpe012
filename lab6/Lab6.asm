@@ -11,8 +11,8 @@
 PrintFloat:
 	move	$t0, $a0		#copy a0 to t0
 	li	$t8, 1			#counter
-	li	$v0, 4		#syscall 4
-	la	$a0, printSign	#print sign string "S: "
+	li	$v0, 4			#syscall 4
+	la	$a0, printSign		#print sign string "S: "
 	syscall
 	
 	# if ($a0 == 0)
@@ -22,13 +22,17 @@ PrintFloat:
 	li	$t1, 0x80000000		#bit mask MSB 
 	and   	$t2, $t0, $t1		#bitwise AND: a0 and 0x80000000
 	blt	$t2, 0, isNegative	#either positive (0) or negative, branch to is Negative if less than 0
-	jal	isPositive	#jump unconditionally to isPositive
+	
+	subi $sp, $sp, 4		#subtract 4 from the stack pointer
+	sw $ra, ($sp)			#load stack pointer into ra
+	
+	jal	isPositive		#jump unconditionally to isPositive
 isNegative:	
-	addi	$t3, $zero, 1	#load 1 into t3
-	li	$v0, 1		#print integer 1
+	addi	$t3, $zero, 1		#load 1 into t3
+	li	$v0, 1			#print integer 1
 	add 	$a0, $t3, $zero
-	syscall			#syscall
-	jal	exit		#jump unconditionally to exit
+	syscall				#syscall
+	b 	exit			#jump unconditionally to exit
 isPositive:	
 	addi	$t3, $zero, 0		#load 0 into t3
 	li	$v0, 1			#print integer 0
@@ -48,45 +52,46 @@ exit:	li	$v0, 4			#syscall 4 print string
 #	print 0
 #else if != 0
 #	print 1
-expLoop:	srl 	$t1, $t1, 1	#move the mask toward the right to check exponent
-		addi	$t8, $t8, 1
-		and 	$t2, $t0, $t1	#bitwise AND: a0 and next bit mask(0x400000000)
+expLoop:	srl 	$t1, $t1, 1		#move the mask toward the right to check exponent
+		addi	$t8, $t8, 1		#add 1 to the counter
+		and 	$t2, $t0, $t1		#bitwise AND: a0 and next bit mask(0x400000000)
 		beq	$t8, 10, exitExpLoop	#when t1 = 0 then exit exponent loop
 		beq	$t2, 1, printOne	
 		beqz	$t2, printZero
 printOne: 
-	addi	$t3, $zero, 1	#load 1 into t3
-	li	$v0, 1		#print integer 1
+	addi	$t3, $zero, 1			#load 1 into t3
+	li	$v0, 1				#print integer 1
 	add 	$a0, $t3, $zero
 	syscall
 	b 	expLoop	
 printZero:
-	addi	$t3, $zero, 0		#load 0 into t3
-	li	$v0, 1			#print integer 0
+	addi	$t3, $zero, 0			#load 0 into t3
+	li	$v0, 1				#print integer 0
 	add	$a0, $t3, $zero
 	syscall
 	b 	expLoop
 	
 #Exit to Mantissa Loop		
 exitExpLoop:
-	li	$v0, 4			#syscall print string
-	la	$a0, newline		#print newline
+	li	$v0, 4				#syscall print string
+	la	$a0, newline			#print newline
 	syscall
 	
-	li	$v0, 4			#syscall print string
-	la	$a0, printMantissa	#print mantissa string
+	li	$v0, 4				#syscall print string
+	la	$a0, printMantissa		#print mantissa string
 	syscall
 	
-ManLoop:	srl 	$t1, $t1, 1	#move the mask toward the right to check mantissa
-		addi	$t8, $t8, 1	#my counter
-		and 	$t2, $t0, $t1	#bitwise AND: a0 and next bit mask(0x400000000)
+ManLoop:	and 	$t2, $t0, $t1		#bitwise AND: a0 and next bit mask(0x400000000)
+		srl 	$t1, $t1, 1		#move the mask toward the right to check mantissa
+		addi	$t8, $t8, 1		#add 1 to the counter
+		
 		beq	$t8, 34, exitManLoop	#when t1 = 0 then exit exponent loop
 		beq	$t2, 1, printOnes	#print 1 if t2 = 1
 		beqz	$t2, printZeroes	#print 0 if t2 = 0
 printOnes: 
-	addi	$t3, $zero, 1	#load 1 into t3
-	li	$v0, 1		#print integer 1
-	add 	$a0, $t3, $zero	#add $t3 to a0
+	addi	$t3, $zero, 1		#load 1 into t3
+	li	$v0, 1			#print integer 1
+	add 	$a0, $t3, $zero		#add $t3 to a0
 	syscall
 	b 	ManLoop	
 printZeroes:
@@ -94,32 +99,58 @@ printZeroes:
 	li	$v0, 1			#print integer 0
 	add	$a0, $t3, $zero		#add $t3 to a0
 	syscall
-	b 	ManLoop		#branch mantissa loop
+	b 	ManLoop			#branch mantissa loop
 	
 exitManLoop:
-	
-	li	$v0, 10		#syscall 10
-	syscall			#terminate
+	lw $ra, ($sp)			#load stack pointer into ra
+	addi $sp, $sp, 4		#add 4 to the stack pointer
 	
 	jr	$ra
 	
 CompareFloats:
+
 	move	$t0, $a0		#A	
 	move 	$t1, $a1		#B
 	li	$t2, 0x80000000		#bit mask MSB 
 	and   	$t3, $t0, $t2		#bitwise AND: a0 and 0x80000000
-	and   	$t4, $t1, $t2		#bitwise AND: a1 and 0x80000000
-	sgt	$t5, $t3, $t4		#if $t3 is greater than $t4, set $t5 to 1
-	bnez	$t5, isBigger
-	b	isSmaller
-isBigger:	li	$v0, 1
-		move	$a0, $t0
-		syscall
-isSmaller:	li	$v0, 1
-		move	$a0, $t4
-		syscall
+	beqz	$t3, A_is_pos
+	b	A_is_neg
+A_is_neg:
+	li	$t3, -1
+	b 	what_is_B
+A_is_pos:
+	li	$t3, 0
+
+what_is_B:
+	and	$t4, $t1, $t2
+	beqz	$t4, B_is_pos
+	b 	B_is_neg
+B_is_neg:
+	li	$t4, -1
+	b 	compareSigns
+B_is_pos:
+	li	$t4, 0
+
+compareSigns:
+		sgt	$t1, $t3, $t4
+		beq	$t3, $t4, A_is_equal_to_B
+		beq	$t1, 1, A_is_greater_than_B
+		beqz	$t1, B_is_greater_than_A
+		
+A_is_greater_than_B:
+		addi	$v0, $zero, 1
+		b 	condition
+B_is_greater_than_A:
+		addi	$v0, $zero, -1
+		b 	condition
+A_is_equal_to_B:
+		addi	$v0, $zero, 0
 	
-	#don't use branches
+condition:
+	
+	jr	$ra
+	
+
 	#compare the sign first
 	# if neg or pos, done
 	#compare the exponent second
@@ -202,7 +233,7 @@ NormalizeFloats:
 	#a0 = sign
 	#a1 = 63:32  first 18 bits is represented as an integer, the 14 bits is where the mantissa starts
 	#a2 = 31:0	the remaining mantissa gets stored into a2  (first 9 bits are important)
-	#a3 = exponent		first filled with zeroes and the exponent is filled in the right
+	#a3 = exponent		first filled with zeroes and the exponent is filled in the right, this is the initial exp
 	
 	#if the value is anything but 1 we know the value is too high
 	#shift to the right
@@ -245,29 +276,51 @@ NormalizeFloats:
 	#move the mask toward the right to check exponent
 	move	$t0, $a1
 	move	$t1, $a2
-	li	$t2, 0x80000000	#bit mask
-	li	$t8, 0		#counter
+	li	$t2, 0x80000000		#bit mask
+	li	$t8, 0			#counter, holds shift amount
 	
-	and	$t3, $t2, $t0	#bitwise AND of 0x80000000 and a0
-	beqz	$t3, continueShift
+	and	$t3, $t2, $t0		#bitwise AND of 0x80000000 and a0
+	beqz	$t3, continueShift	#if it equals 0 continue shifting 
+	b	exitShiftLoop
 continueShift:
-	srl	$t2, $t2, 1	#add 1 to the mask (0x40000000)
-	addi	$t8, $t8, 1	#add 1 to the counter
-	and 	$t3, $t2, $t0	#bitwise AND: a0 and next bit mask(0x400000000)
+	srl	$t2, $t2, 1		#add 1 to the mask (0x40000000)
+	addi	$t8, $t8, 1		#add 1 to the counter
+	and 	$t3, $t2, $t0		#bitwise AND: a0 and next bit mask(0x400000000)
 	beq	$t8, 18, exitShiftLoop	#when counter reaches 18 stop looping
 	
 	b	continueShift
 	
-#reg t8 = SHIFT AMOUNT
-exitShiftLoop:
+	#if no 1's are found in a1 then check a2
+	
+	
+	#change exponent depending on the shift amount
+
+exitShiftLoop:	
+	beqz	$t3, check_a2	#if every bit equals zero branch to check register a2
+	b	getShiftAmount
+check_a2:
+	li	$t2, 0x80000000		#bit mask
+	li	$t8, 0			#counter, holds shift amount
+	
+	and	$t3, $t2, $t1		#bitwise AND of 0x80000000 and a0
+	beqz	$t3, continueShifting	#if it equals 0 continue shifting 
+	b	getShiftAmount
+continueShifting:
+	srl	$t2, $t2, 1		#add 1 to the mask (0x40000000)
+	addi	$t8, $t8, 1		#add 1 to the counter
+	and 	$t3, $t2, $t1		#bitwise AND: a0 and next bit mask(0x400000000)
+	beq	$t8, 18, getShiftAmount	#when counter reaches 18 stop looping
+	
+	b	continueShifting
+getShiftAmount:
 	li	$t7, 17
 	sub	$t8, $t8, $t7		#t8 holds the shift amount, subtract 17 to get the actual value of the shift amount
 	
-	and	$t3, $t0, 0x00000001	#bitwise AND a1 and 0x00000001 ($t8)
+	and	$t3, $t0, 0x00000001	#bitwise AND a1 and 0x00000001; store value into t3
 	sll	$t4, $t3, 31
 	
-	or	$t4, $t4, $t1	#add lost bits onto a2
-	srl	$t0, $t0, 1	#shift a1 right by shift amount ($t8)
+	or	$t4, $t4, $t1		#add lost bits onto a2
+	srl	$t0, $t0, 1		#shift a1 right by shift amount ($t8)
 	
 ShiftMantissa:
 	and	$t2, $t0, 0x00003FFF	#mask 14 bits of mantissa with 14 ones right aligned
@@ -275,8 +328,10 @@ ShiftMantissa:
 	
 	srl	$t1, $t1, 23		#shift 9-bits from a2 to be right aligned
 	
-	add	$v0, $t2, $t1		#add t2 and a2 to add the 14 bit mantissa and 9 bit mantissa
+	#add	$v0, $t2, $t1		#add t2 and a2 to add the 14 bit mantissa and 9 bit mantissa
 	
+
+
 endNormalize:
 
 	li	$v0, 10
@@ -284,7 +339,6 @@ endNormalize:
 	
 	jr	$ra
 	
-
 	#shift exponent if neccessary by adding to the exponent
 	
 # Normalizes, rounds, and “packs” a floating point value.
