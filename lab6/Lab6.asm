@@ -207,12 +207,44 @@ exitShiftsLoop:
 
 
 MultFloats:
+	
 	#Add the exponents then subtract bias ( n + 127)+( n + 127) - 127 = x
 	#x - 127 = exponent
 	#Multiply the HB and mantissa of each number using the mult function
 	##hi into a1
 	#lo into a2
 	#Normalize result if neccessary
+	
+	move	$t0, $a0			#copy a0 to t0
+	move	$t1, $a1			#copy a1 to t1
+	
+	li	$t2, 0x80000000			#bit mask a leading 1
+	
+	and	$t3, $t0, $t2			#bitwise and a1 and 0x80000000
+	and	$t4, $t1, $t2			#bitwise and a2 and the mask to check for the sign
+	beq 	$t4, $t3, same_sign		#branch to same sign if they have the same sign
+	bnez	$t3, negative_a0
+	beqz	$t3, positive_a0
+same_sign:
+	add	$v0, $v0, $t4			#load the contents of t4 into v0 (either a 1 or a 0)
+	b 	add_exponents
+negative_a0:
+	add	$v0, $v0, $t3			#add 0x80000000 into a0
+	b 	checksign_a1
+positive_a0:
+	add	$v0, $v0, 0			#add a 0 into v0
+checksign_a1:
+	bnez	$t4, negative_a1
+	beqz	$t4, positive_a1
+negative_a1:
+	add	$v0, $v0, $t4			#add 0x80000000
+	b  	add_exponents
+positive_a1:
+	add	$v0, $v0, 0			#add a 0 into v0
+add_exponents:
+	
+	#call NormalizeFloat after you multiply the HB.mantissas
+
 	
 	jr $ra
 	
@@ -224,10 +256,10 @@ NormalizeFloat:
 	#a2 = 31:0		the remaining mantissa gets stored into a2  (first 9 bits are important)
 	#a3 = exponent		first filled with zeroes and the exponent is filled in the right, this is the initial exp
 	
-	li $a0, 0x00000001
-	li $a1, 0x00006543
-	li $a2, 0x21987654
-	li $a3, 0x00000020
+	li $a0, 0x00000000
+	li $a1,	0x00000023
+	li $a2,	0x456789AB
+	li $a3, 0x000000A0
 	
 	move	$t0, $a1			#integer and mantissa placeholder
 	move	$t1, $a2			#mantissa placeholder
@@ -239,9 +271,8 @@ NormalizeFloat:
 	
 	and 	$t3, $t2, $t0			#bitwise AND a1 and 0x80000000
 	bgt	$t3, 0, found_a_1
-	beqz 	$t3, keepShifting		#loop that counts how far over left 1 is
-						#bitwise and a0 with a mask to look for 1^^
-keepShifting:					#move the mask toward the right to check the exponent
+	beqz 	$t3, keepShifting
+keepShifting:
 	srl	$t2, $t2, 1			#shift by 1
 	addi	$t8, $t8, 1			#add 1 to the counter to keep track of how many bits the bit was found
 	and	$t3, $t2, $t0
@@ -252,14 +283,14 @@ found_a_1:
 	sll	$v0, $v0, 8			#shift v0 8 bits to make room for exponent
 	li	$t4, 17				#load 17 into reg t4
 	
-	beq	$t8, 17, normalized		#if the counter is at 17 (18th bit) then the input is normalized	
-	blt	$t8, 17, left_of_decimal
-	bgt	$t8, 17, right_of_decimal	#if the counter is more than 18 bits 
+	beq	$t8, $t4, normalized		#if the counter is at 17 (18th bit) then the input is normalized	
+	blt	$t8, $t4, left_of_decimal
+	bgt	$t8, $t4, right_of_decimal	#if the counter is more than 18 bits 
 				
 left_of_decimal:				#if the counter is less than 18
 						#find shift amount by subtracting 17 by the counter
-	sub 	$t3, $t4, $t8		
-	add	$a3, $zero, $t3			#add the shift amount to the exponent
+	sub 	$t3, $t4, $t8			#find the shift amount: subtract 17 by the counter
+	add	$a3, $a3, $t3			#add the shift amount to the exponent
 	add	$v0, $v0, $a3			#add exponent into v0
 	
 	b mantissa
@@ -278,24 +309,25 @@ normalized:
 mantissa:
 	sll	$v0, $v0, 23			#shift v0 23 times to the left so that it is in the correct order
 	
-	li	$t4, 32				#load 32 into t4
-	sub	$t4, $t4, $t8			#subtract 32 by counter to get how many bits are next to the leading 1
 	addi	$t8, $t8, 1
 	sllv	$t6, $t0, $t8			#shift a1 to the left 
 	srl	$t6, $t6, 9			#shift a1 9 bits to the right
 	
 	add	$v0, $v0, $t6			#load a1 into v0
-
+	
+	subi	$t8, $t8, 1			#subtract 1 to get 8 to its normal value
+	li	$t4, 32				#load 32 "bits"
+	sub	$t4, $t4, $t8			#subtract 32 by the counter to get how many mantissa in a1 you can get
 	li	$t7, 23				#load 23 into t7
 	sub	$t7, $t7, $t4			#t7 holds remaining mantissa values in a2
 	
 	li	$t5, 31				#load 31 into t5
-	sub	$t5, $t5, $t7			#subtract 32 by the number of the meaningful bits in a2
+	sub	$t5, $t5, $t7			#subtract 31 by the number of the meaningful bits in a2
 	
 	srlv	$t9, $t1, $t5			#shift a2 to the right to clear the unwanted mantissas
 	
 	add	$v0, $v0, $t9			#load a2 into v0
-	
+  
 	jr $ra
 
 .data
